@@ -15,7 +15,7 @@ Deliver an autonomous research agent that monitors the official Rostekhnadzor we
 - **Parser**: `BeautifulSoup` for HTML nodes (`p.news-item`, `div.news-detail`), `xml.etree` for RSS.
 - **State Store**: JSON/SQLite keyed by `source_id`, stores published date, hash, and status.
 - **Summarizer**: lightweight heuristic summary (first N sentences) with optional LLM provider adapter.
-- **Exporter / Notifier**: Markdown reports, Slack/Telegram webhooks, e-mail.
+- **Exporter / Notifier**: Markdown reports, e-mail (SMTP), optional Slack/Telegram webhooks.
 - **Observability**: structured logs, counters (new items, errors, latency).
 
 ## Processing Flow
@@ -37,10 +37,22 @@ Deliver an autonomous research agent that monitors the official Rostekhnadzor we
 - `src/rostekhnadzor_agent/storage.py` - JSON state store with content hashes.
 - `src/rostekhnadzor_agent/summarizer.py` - simple sentence-based summariser.
 - `src/rostekhnadzor_agent/exporters.py` - Markdown report generation.
+- `src/rostekhnadzor_agent/notifications.py` - SMTP email notifier.
 - `src/rostekhnadzor_agent/agent.py` - orchestration logic.
 - `src/rostekhnadzor_agent/cli.py` - `python -m rostekhnadzor_agent.cli run` entry point.
 
 Quick local run without installing the package: `PYTHONPATH=src python3 -m rostekhnadzor_agent.cli run --limit 5`.
+
+Email delivery example (SMTP + STARTTLS):
+
+```bash
+PYTHONPATH=src python3 -m rostekhnadzor_agent.cli run --limit 5 \
+  --email-to ansellx@mail.ru \
+  --smtp-host smtp.example.com --smtp-user user@example.com --smtp-password secret \
+  --email-from digest@example.com
+```
+
+Environment fallbacks: `SMTP_HOST`, `SMTP_USER`, `SMTP_PASSWORD`.
 
 ## Configuration Blueprint
 

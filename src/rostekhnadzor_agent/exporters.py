@@ -21,19 +21,25 @@ class MarkdownExporter:
         self.output_dir.mkdir(parents=True, exist_ok=True)
         filename = f"rostekhnadzor_{run_date.date().isoformat()}.md"
         target = self.output_dir / filename
-        content = self._render(articles, run_date)
+        content = self.render(articles, run_date)
         target.write_text(content, encoding="utf-8")
         return target
 
-    def _render(self, articles: List[ProcessedArticle], run_date: datetime) -> str:
+    def render(self, articles: Iterable[ProcessedArticle], run_date: Optional[datetime] = None) -> str:
+        articles_list = list(articles)
+        run_date = run_date or datetime.utcnow()
         lines = [
             f"# \u0420\u043e\u0441\u0442\u0435\u0445\u043d\u0430\u0434\u0437\u043e\u0440 \u2014 \u0434\u0430\u0439\u0434\u0436\u0435\u0441\u0442 {run_date.date().isoformat()}",
             "",
-            f"\u041e\u0431\u0440\u0430\u0431\u043e\u0442\u0430\u043d\u043e \u043c\u0430\u0442\u0435\u0440\u0438\u0430\u043b\u043e\u0432: {len(articles)}",
+            f"\u041e\u0431\u0440\u0430\u0431\u043e\u0442\u0430\u043d\u043e \u043c\u0430\u0442\u0435\u0440\u0438\u0430\u043b\u043e\u0432: {len(articles_list)}",
             "",
         ]
-        for article in sorted(articles, key=lambda a: a.published_at, reverse=True):
-            lines.extend(self._render_article(article))
+        if not articles_list:
+            lines.append("\u041d\u0435\u0442 \u043d\u043e\u0432\u044b\u0445 \u043c\u0430\u0442\u0435\u0440\u0438\u0430\u043b\u043e\u0432.")
+            lines.append("")
+        else:
+            for article in sorted(articles_list, key=lambda a: a.published_at, reverse=True):
+                lines.extend(self._render_article(article))
         return "\n".join(lines).strip() + "\n"
 
     @staticmethod
